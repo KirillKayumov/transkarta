@@ -1,3 +1,5 @@
+require "bundler/setup"
+
 require "capybara"
 require "capybara/dsl"
 require "capybara-webkit"
@@ -19,8 +21,8 @@ class Transkarta
   include Capybara::DSL
 
   def perform
-    File.delete("page.png") if File.exist?("page.png")
-    File.delete("captcha.png") if File.exist?("captcha.png")
+    File.delete("tmp/page.png") if File.exist?("tmp/page.png")
+    File.delete("tmp/captcha.png") if File.exist?("tmp/captcha.png")
 
     puts "Looking for captcha..."
 
@@ -28,17 +30,17 @@ class Transkarta
     find("input").click
     # binding.pry
     # return
-    file_name = "page.png"
+    file_name = "tmp/page.png"
     save_screenshot(file_name)
 
-    image = MiniMagick::Image.open("page.png")
+    image = MiniMagick::Image.open("tmp/page.png")
     image.crop "200x60+100+100"
-    image.write("captcha.png")
+    image.write("tmp/captcha.png")
 
     puts "Parsing captcha..."
 
     uri = URI("http://api.anti-captcha.com/createTask")
-    image_base64 = Base64.encode64(File.open("captcha.png", "rb").read).gsub("\n", "")
+    image_base64 = Base64.encode64(File.open("tmp/captcha.png", "rb").read).gsub("\n", "")
 
     req = Net::HTTP::Post.new(uri, "Content-Type" => "application/json")
     req.body = {
